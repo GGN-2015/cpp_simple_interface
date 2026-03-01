@@ -1,6 +1,6 @@
 [project]
 name = "cpp-simple-interface"
-version = "0.0.1"
+version = "0.0.2"
 description = "compile c++ program with local g++/mingw compiler."
 authors = [
     {name = "GGN_2015",email = "neko@jlulug.org"}

@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Ignore test file
+a.cpp
+a.exe
+
 # C extensions
 *.so
 
