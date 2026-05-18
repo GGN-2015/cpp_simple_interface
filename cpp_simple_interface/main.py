@@ -7,9 +7,24 @@ try:
 except:
     from check_gpp import check_gpp_availability
 
+# Default filepath
+DAULT_GPP_FILEPATH = "g++"
+GPP_FILEPATH = DAULT_GPP_FILEPATH
+
 def check_gpp_exists() -> bool:
-    is_available, msg = check_gpp_availability("g++", "--version")
+    is_available, msg = check_gpp_availability(GPP_FILEPATH, "--version")
     return is_available
+
+def set_gpp_filepath(gpp_filepath:str):
+    global GPP_FILEPATH
+    GPP_FILEPATH = gpp_filepath
+
+    if not check_gpp_exists():
+        GPP_FILEPATH = DAULT_GPP_FILEPATH
+        raise FileNotFoundError(f"{gpp_filepath} is not an available gpp filepath.")
+
+def get_gpp_filepath() -> str:
+    return GPP_FILEPATH
 
 def compile_cpp_files(cpp_files: list[str], exe_output_path: str, other_flags=["-std=c++17"]) -> tuple[bool, str]:
     """
@@ -37,10 +52,10 @@ def compile_cpp_files(cpp_files: list[str], exe_output_path: str, other_flags=["
         if not cpp_file.endswith(".cpp"):
             return False, f"Error: Not a valid .cpp file - {cpp_file}"
     
-    # 2. Construct g++ compilation command
-    # Core command format: g++ [source files] -o [output] -std=c++17
+    # 2. Construct GPP_FILEPATH compilation command
+    # Core command format: GPP_FILEPATH [source files] -o [output] -std=c++17
     compile_cmd = [
-        "g++",
+        GPP_FILEPATH,
         *cpp_files,  # Unpack source file list
         "-o", exe_output_path,
         *other_flags
@@ -58,7 +73,7 @@ def compile_cpp_files(cpp_files: list[str], exe_output_path: str, other_flags=["
     
     # 4. Execute compilation command and judge result
     try:
-        # Run g++ compilation command
+        # Run GPP_FILEPATH compilation command
         result = subprocess.run(compile_cmd, **subprocess_kwargs)
         
         # Judge success only by return code (0 = success, non-0 = failure)
@@ -74,6 +89,6 @@ def compile_cpp_files(cpp_files: list[str], exe_output_path: str, other_flags=["
             return False, f"Error: Compilation failed (return code: {result.returncode})\nError details: {error_detail}"
     
     except FileNotFoundError:
-        return False, "Error: g++ not found. Please install GCC/MinGW and add to system PATH."
+        return False, f"Error: {GPP_FILEPATH} not found. Please install GCC/MinGW and add to system PATH."
     except Exception as e:
         return False, f"Error: Unexpected exception during compilation - {str(e)}"

@@ -2,12 +2,12 @@ import subprocess
 import platform
 import sys
 
-def check_gpp_availability(cmd_name="g++", sub_cmd_name="--version"):
+def check_gpp_availability(cmd_name, sub_cmd_name="--version"):
     """
     Check if <cmd_name> is available in system PATH by running '<cmd_name> --version'
     Returns: (bool: is_available, str: message)
     """
-    # Base command to verify g++ version
+    # Base command to verify GPP_FILEPATH version
     cmd = [cmd_name, sub_cmd_name]
     
     # Configure subprocess parameters with platform-specific flags
@@ -48,7 +48,7 @@ def main():
     print("-" * 35)
     
     # Perform g++ availability check
-    is_available, message = check_gpp_availability()
+    is_available, message = check_gpp_availability("g++")
     
     # Print result with clear status indicators
     if is_available:
