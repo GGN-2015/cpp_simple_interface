@@ -40,6 +40,8 @@ def check_gpp_availability(cmd_name, sub_cmd_name="--version"):
             return (False, f"{display_name} execution failed: {result.stderr.strip()}")
     
     except FileNotFoundError:
+        if platform.system() == 'Windows':
+            return (False, f"{display_name} not found. Install it with: pip install py-win-x86-64-gcc")
         return (False, f"{display_name} not found. Ensure GCC/MinGW is installed and added to PATH.")
     except subprocess.TimeoutExpired:
         return (False, f"{display_name} --version timed out (10s limit)")
@@ -76,8 +78,8 @@ def main():
         os_type = platform.system()
         print("\nInstallation Suggestions:")
         if os_type == 'Windows':
-            print("   - Install MinGW-w64 (https://sourceforge.net/projects/mingw-w64/)")
-            print("   - Add 'mingw64/bin' directory to your system PATH environment variable")
+            print("   - Install the packaged GCC toolchain: pip install py-win-x86-64-gcc")
+            print("   - Package page: https://pypi.org/project/py-win-x86-64-gcc/")
         elif os_type == 'Linux':
             print("   - Debian/Ubuntu-based systems: sudo apt update && sudo apt install g++")
             print("   - RHEL/CentOS-based systems: sudo dnf install gcc-c++")

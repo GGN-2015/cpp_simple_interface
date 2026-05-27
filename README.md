@@ -1,7 +1,7 @@
 # cpp_simple_interface
 
 `cpp_simple_interface` is a small Python package for compiling C++ source files
-with a local `g++` or MinGW compiler. It is useful when a Python workflow needs
+with a local `g++` compatible compiler. It is useful when a Python workflow needs
 to build a temporary C++ executable without introducing a larger build system.
 
 ## Features
@@ -18,12 +18,20 @@ to build a temporary C++ executable without introducing a larger build system.
 - Python 3.10 or later.
 - A working `g++` compatible compiler.
 
+> [!IMPORTANT]
+> `cpp_simple_interface` does not ship a compiler by itself. Make sure a
+> `g++` compatible compiler is installed before calling `compile_cpp_files()`.
+
 Install `g++` if it is not already available:
 
-- Windows: install MinGW-w64 and add the `mingw64/bin` directory to `PATH`.
+- Windows: `pip install py-win-x86-64-gcc`
 - Debian/Ubuntu: `sudo apt update && sudo apt install g++`
 - RHEL/CentOS/Fedora: `sudo dnf install gcc-c++`
 - macOS: `xcode-select --install`
+
+> [!TIP]
+> On Windows, `py-win-x86-64-gcc` is the recommended way to install the compiler
+> expected by this project.
 
 You can verify your compiler from a terminal:
 
@@ -43,6 +51,10 @@ On Windows PowerShell:
 $env:CXX = "C:\msys64\mingw64\bin\g++.exe"
 python your_script.py
 ```
+
+> [!NOTE]
+> `CXX` is read when the package is imported. Set it before starting Python or
+> before importing `cpp_simple_interface`.
 
 ## Installation
 
@@ -89,6 +101,10 @@ success, message = cpp_simple_interface.compile_cpp_files(
 )
 ```
 
+> [!TIP]
+> The output path is passed directly to the compiler. Use `.exe` on Windows and
+> any executable filename you prefer on Linux or macOS.
+
 ## Compiler Selection
 
 The compiler is selected in this order:
@@ -112,6 +128,10 @@ For Windows paths with spaces, quote the path in the environment variable:
 $env:CXX = '"C:\Program Files\LLVM\bin\clang++.exe"'
 ```
 
+> [!IMPORTANT]
+> An explicit `set_gpp_filepath(...)` call takes precedence over `CXX` for the
+> current Python process.
+
 ## API Reference
 
 ### `compile_cpp_files(cpp_files, exe_output_path, other_flags=["-std=c++17"])`
@@ -129,6 +149,10 @@ Returns:
 - `(True, message)` when compilation succeeds and the output file exists.
 - `(False, message)` when validation fails, compilation fails, or the compiler
   cannot be found.
+
+> [!NOTE]
+> Compilation success is based on the compiler return code and the existence of
+> the requested output file.
 
 Example with multiple source files:
 
@@ -155,6 +179,10 @@ if not cpp_simple_interface.check_gpp_exists():
 Set a custom compiler executable path or compiler command. The compiler is
 checked immediately with `--version`. If the compiler cannot be executed,
 `FileNotFoundError` is raised and the previously configured compiler is kept.
+
+> [!WARNING]
+> `set_gpp_filepath()` validates the new compiler before changing global state.
+> Handle `FileNotFoundError` if the compiler path comes from user input.
 
 ```python
 cpp_simple_interface.set_gpp_filepath(r"C:\msys64\mingw64\bin\g++.exe")
@@ -186,12 +214,20 @@ python -m cpp_simple_interface.check_gpp
 It prints the detected operating system, Python version, compiler availability,
 and basic installation suggestions when `g++` cannot be found.
 
+> [!TIP]
+> Run this command first when a machine fails to compile. It is the quickest way
+> to confirm which compiler the package can see.
+
 ## Troubleshooting
 
 ### `Error: g++ not found`
 
-Install GCC/MinGW and make sure the compiler directory is available in your
-system `PATH`. If your compiler is installed in a custom location, call
+> [!IMPORTANT]
+> On Windows, use `pip install py-win-x86-64-gcc` as the recommended fix.
+
+On Windows, install the packaged GCC toolchain with
+`pip install py-win-x86-64-gcc`. On Linux or macOS, install `g++` with your
+system package manager. If your compiler is installed in a custom location, call
 `set_gpp_filepath()` before compiling or set the `CXX` environment variable
 before starting Python.
 
@@ -211,6 +247,10 @@ directory of your Python process.
 Only files ending in `.cpp` are accepted by `compile_cpp_files()`.
 
 ### Warnings do not fail compilation
+
+> [!NOTE]
+> Compiler warnings are captured but do not make `compile_cpp_files()` return
+> `False`.
 
 Compilation success is determined only by the compiler return code. Warnings are
 captured by the compiler but do not make `compile_cpp_files()` return `False`.

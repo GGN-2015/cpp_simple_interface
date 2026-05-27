@@ -122,6 +122,8 @@ def compile_cpp_files(cpp_files: list[str], exe_output_path: str, other_flags=["
             return False, f"Error: Compilation failed (return code: {result.returncode})\nError details: {error_detail}"
     
     except FileNotFoundError:
+        if platform.system() == "Windows":
+            return False, f"Error: {GPP_FILEPATH} not found. Install it with: pip install py-win-x86-64-gcc"
         return False, f"Error: {GPP_FILEPATH} not found. Please install GCC/MinGW and add to system PATH."
     except ValueError as e:
         return False, f"Error: Invalid compiler path - {str(e)}"
