@@ -59,7 +59,7 @@ def main():
     # Provide OS-specific installation guidance for troubleshooting
     if not is_available:
         os_type = platform.system()
-        print("\n💡 Installation Suggestions:")
+        print("\nInstallation Suggestions:")
         if os_type == 'Windows':
             print("   - Install MinGW-w64 (https://sourceforge.net/projects/mingw-w64/)")
             print("   - Add 'mingw64/bin' directory to your system PATH environment variable")

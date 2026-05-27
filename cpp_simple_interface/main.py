@@ -2,16 +2,16 @@ import subprocess
 import platform
 import os
 
-try:
-    from .check_gpp import check_gpp_availability
-except:
-    from check_gpp import check_gpp_availability
-
 # Default filepath
 DAULT_GPP_FILEPATH = "g++"
 GPP_FILEPATH = DAULT_GPP_FILEPATH
 
 def check_gpp_exists() -> bool:
+    try:
+        from .check_gpp import check_gpp_availability
+    except ImportError:
+        from check_gpp import check_gpp_availability
+
     is_available, msg = check_gpp_availability(GPP_FILEPATH, "--version")
     return is_available
 
