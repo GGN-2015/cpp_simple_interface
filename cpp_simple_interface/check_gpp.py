@@ -4,12 +4,17 @@ import sys
 
 def check_gpp_availability(cmd_name, sub_cmd_name="--version"):
     """
-    Check if <cmd_name> is available in system PATH by running '<cmd_name> --version'
+    Check if <cmd_name> is available by running '<cmd_name> --version'
     Returns: (bool: is_available, str: message)
     """
+    if isinstance(cmd_name, (list, tuple)):
+        cmd = [*cmd_name, sub_cmd_name]
+        display_name = " ".join(cmd_name)
+    else:
+        cmd = [cmd_name, sub_cmd_name]
+        display_name = cmd_name
+
     # Base command to verify GPP_FILEPATH version
-    cmd = [cmd_name, sub_cmd_name]
-    
     # Configure subprocess parameters with platform-specific flags
     subprocess_kwargs = {
         'stdout': subprocess.PIPE,
@@ -30,25 +35,35 @@ def check_gpp_availability(cmd_name, sub_cmd_name="--version"):
         if result.returncode == 0:
             # Extract first line of version info for brevity
             version = result.stdout.strip().split('\n')[0]
-            return (True, f"{cmd_name} is available. Version: {version}")
+            return (True, f"{display_name} is available. Version: {version}")
         else:
-            return (False, f"{cmd_name} execution failed: {result.stderr.strip()}")
+            return (False, f"{display_name} execution failed: {result.stderr.strip()}")
     
     except FileNotFoundError:
-        return (False, f"{cmd_name} not found. Ensure GCC/MinGW is installed and added to PATH.")
+        return (False, f"{display_name} not found. Ensure GCC/MinGW is installed and added to PATH.")
     except subprocess.TimeoutExpired:
-        return (False, f"{cmd_name} --version timed out (10s limit)")
+        return (False, f"{display_name} --version timed out (10s limit)")
     except Exception as e:
         return (False, f"Unexpected error checking g++: {str(e)}")
 
 def main():
-    print("=== g++ Availability Check ===")
+    print("=== C++ Compiler Availability Check ===")
     print(f"OS: {platform.system()} {platform.machine()}")
     print(f"Python Version: {sys.version.split()[0]}")
     print("-" * 35)
+
+    try:
+        from .main import GPP_FILEPATH, _compiler_command_parts
+    except ImportError:
+        from main import GPP_FILEPATH, _compiler_command_parts
     
     # Perform g++ availability check
-    is_available, message = check_gpp_availability("g++")
+    try:
+        compiler_parts = _compiler_command_parts(GPP_FILEPATH)
+        is_available, message = check_gpp_availability(compiler_parts)
+    except ValueError as exc:
+        is_available = False
+        message = f"Invalid compiler path: {str(exc)}"
     
     # Print result with clear status indicators
     if is_available:

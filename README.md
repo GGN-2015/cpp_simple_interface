@@ -7,7 +7,8 @@ to build a temporary C++ executable without introducing a larger build system.
 ## Features
 
 - Compile one or more `.cpp` files into an executable from Python.
-- Use the system `g++` by default, or configure a custom compiler path.
+- Use the system `g++` by default, the `CXX` environment variable, or a custom
+  compiler path.
 - Check whether the configured compiler is available before compiling.
 - Capture compiler errors and return them as plain Python values.
 - Hide the extra console window when running on Windows.
@@ -28,6 +29,19 @@ You can verify your compiler from a terminal:
 
 ```bash
 g++ --version
+```
+
+The package also respects the standard `CXX` environment variable:
+
+```bash
+CXX=clang++ python your_script.py
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:CXX = "C:\msys64\mingw64\bin\g++.exe"
+python your_script.py
 ```
 
 ## Installation
@@ -75,6 +89,29 @@ success, message = cpp_simple_interface.compile_cpp_files(
 )
 ```
 
+## Compiler Selection
+
+The compiler is selected in this order:
+
+1. `set_gpp_filepath(...)`, when called by your Python code.
+2. The `CXX` environment variable, when it is set before importing the package.
+3. The default command `g++`.
+
+`CXX` and `set_gpp_filepath()` may contain either a compiler executable path or
+a compiler command:
+
+```bash
+CXX=clang++
+CXX="ccache g++"
+CXX="/opt/homebrew/opt/llvm/bin/clang++"
+```
+
+For Windows paths with spaces, quote the path in the environment variable:
+
+```powershell
+$env:CXX = '"C:\Program Files\LLVM\bin\clang++.exe"'
+```
+
 ## API Reference
 
 ### `compile_cpp_files(cpp_files, exe_output_path, other_flags=["-std=c++17"])`
@@ -115,12 +152,19 @@ if not cpp_simple_interface.check_gpp_exists():
 
 ### `set_gpp_filepath(gpp_filepath)`
 
-Set a custom compiler executable path. The path is checked immediately. If the
-compiler cannot be executed, `FileNotFoundError` is raised and the package falls
-back to the default `g++`.
+Set a custom compiler executable path or compiler command. The compiler is
+checked immediately with `--version`. If the compiler cannot be executed,
+`FileNotFoundError` is raised and the previously configured compiler is kept.
 
 ```python
 cpp_simple_interface.set_gpp_filepath(r"C:\msys64\mingw64\bin\g++.exe")
+```
+
+You can also select another compatible compiler:
+
+```python
+cpp_simple_interface.set_gpp_filepath("clang++")
+cpp_simple_interface.set_gpp_filepath("ccache g++")
 ```
 
 ### `get_gpp_filepath()`
@@ -148,7 +192,14 @@ and basic installation suggestions when `g++` cannot be found.
 
 Install GCC/MinGW and make sure the compiler directory is available in your
 system `PATH`. If your compiler is installed in a custom location, call
-`set_gpp_filepath()` before compiling.
+`set_gpp_filepath()` before compiling or set the `CXX` environment variable
+before starting Python.
+
+### `FileNotFoundError` from `set_gpp_filepath()`
+
+The requested compiler did not pass the immediate `--version` check. The package
+keeps using the previous compiler, so a failed call does not leave the module in
+a broken state.
 
 ### `Error: .cpp file not found`
 
